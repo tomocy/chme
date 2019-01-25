@@ -12,25 +12,14 @@ import (
 	"github.com/go-chi/chi"
 )
 
+var endpoint = "/chme"
+
 func TestChangePostToHiddenMethod(t *testing.T) {
-	endpoint := "/chme"
-	r := chi.NewRouter()
+	r := newTestRouter()
 	r.Use(ChangePostToHiddenMethod)
-	r.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("get"))
-	})
-	r.Post(endpoint, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("post"))
-	})
-	r.Put(endpoint, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("put"))
-	})
-	r.Patch(endpoint, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("patch"))
-	})
-	r.Delete(endpoint, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("delete"))
-	})
+	r.registerRoute()
+	ts := httptest.NewServer(r)
+	defer ts.Close()
 
 	tests := []struct {
 		method             string
@@ -82,8 +71,6 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 		},
 	}
 
-	ts := httptest.NewServer(r)
-	defer ts.Close()
 	for _, test := range tests {
 		resp, body := testRequest(t, ts, test.method, test.path, strings.NewReader(test.body.Encode()))
 		if resp.StatusCode != test.expectedStatusCode {
@@ -116,4 +103,32 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body io
 	}
 
 	return resp, string(respBody)
+}
+
+type testRouter struct {
+	chi.Router
+}
+
+func newTestRouter() *testRouter {
+	return &testRouter{
+		Router: chi.NewRouter(),
+	}
+}
+
+func (r *testRouter) registerRoute() {
+	r.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("get"))
+	})
+	r.Post(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("post"))
+	})
+	r.Put(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("put"))
+	})
+	r.Patch(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("patch"))
+	})
+	r.Delete(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("delete"))
+	})
 }
