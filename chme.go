@@ -5,6 +5,7 @@ import "net/http"
 func ChangePostToHiddenMethod(next http.Handler) http.Handler {
 	var changeableMethods = map[string]bool{
 		http.MethodPut:    true,
+		http.MethodPatch:  true,
 		http.MethodDelete: true,
 	}
 

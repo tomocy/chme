@@ -20,6 +20,9 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 	r.Put("/put", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("put"))
 	})
+	r.Patch("/patch", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("patch"))
+	})
 	r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("delete"))
 	})
@@ -46,6 +49,15 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 			},
 			http.StatusOK,
 			"put",
+		},
+		{
+			http.MethodPatch,
+			"/patch",
+			url.Values{
+				"_method": {"PATCH"},
+			},
+			http.StatusOK,
+			"patch",
 		},
 		{
 			http.MethodDelete,
