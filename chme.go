@@ -1,6 +1,8 @@
 package chme
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func ChangePostToHiddenMethod(next http.Handler) http.Handler {
 	var changeableMethods = map[string]bool{

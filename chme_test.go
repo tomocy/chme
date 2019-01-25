@@ -6,24 +6,29 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi"
 )
 
 func TestChangePostToHiddenMethod(t *testing.T) {
+	endpoint := "/chme"
 	r := chi.NewRouter()
 	r.Use(ChangePostToHiddenMethod)
-	r.Post("/post", func(w http.ResponseWriter, r *http.Request) {
+	r.Get(endpoint, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("get"))
+	})
+	r.Post(endpoint, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("post"))
 	})
-	r.Put("/put", func(w http.ResponseWriter, r *http.Request) {
+	r.Put(endpoint, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("put"))
 	})
-	r.Patch("/patch", func(w http.ResponseWriter, r *http.Request) {
+	r.Patch(endpoint, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("patch"))
 	})
-	r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
+	r.Delete(endpoint, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("delete"))
 	})
 
@@ -35,15 +40,22 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 		expectedBody       string
 	}{
 		{
+			http.MethodGet,
+			endpoint,
+			url.Values{},
+			http.StatusOK,
+			"get",
+		},
+		{
 			http.MethodPost,
-			"/post",
+			endpoint,
 			url.Values{},
 			http.StatusOK,
 			"post",
 		},
 		{
-			http.MethodPut,
-			"/put",
+			http.MethodPost,
+			endpoint,
 			url.Values{
 				"_method": {"PUT"},
 			},
@@ -51,8 +63,8 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 			"put",
 		},
 		{
-			http.MethodPatch,
-			"/patch",
+			http.MethodPost,
+			endpoint,
 			url.Values{
 				"_method": {"PATCH"},
 			},
@@ -60,8 +72,8 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 			"patch",
 		},
 		{
-			http.MethodDelete,
-			"/delete",
+			http.MethodPost,
+			endpoint,
 			url.Values{
 				"_method": {"DELETE"},
 			},
@@ -73,7 +85,7 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 	for _, test := range tests {
-		resp, body := testRequest(t, ts, test.method, test.path, nil)
+		resp, body := testRequest(t, ts, test.method, test.path, strings.NewReader(test.body.Encode()))
 		if resp.StatusCode != test.expectedStatusCode {
 			t.Errorf("unexpected status code: got %d, but expected %d\n", resp.StatusCode, test.expectedStatusCode)
 		}
@@ -86,22 +98,22 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body io.Reader) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, body)
 	if err != nil {
-		t.Fatal(err)
-		return nil, ""
+		t.Fatalf("failed to test: faield to create new request: %s\n", err)
+	}
+	if method == http.MethodPost {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Fatal(err)
-		return nil, ""
+		t.Fatalf("failed to test: failed to request: %s\n", err)
 	}
+	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		t.Fatal(err)
-		return nil, ""
+		t.Fatalf("failed to test: failed to read all of response body: %s\n", err)
 	}
-	defer resp.Body.Close()
 
 	return resp, string(respBody)
 }
