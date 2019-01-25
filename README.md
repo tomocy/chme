@@ -1,6 +1,9 @@
 Chme
 ====
 
+[![CircleCI](https://circleci.com/gh/tomocy/chme.svg?style=svg)](https://circleci.com/gh/tomocy/chme)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Chme provides middlewares which enable you to do requests with other methods than GET and POST from HTML form.  
 Chme stands for "change methods".   
 
