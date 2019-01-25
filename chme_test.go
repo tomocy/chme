@@ -14,7 +14,7 @@ import (
 
 var endpoint = "/chme"
 
-func TestChangePostToHiddenMethod(t *testing.T) {
+func TestChangePostToHiddenMethodOfDefault(t *testing.T) {
 	r := newTestRouter()
 	r.Use(ChangePostToHiddenMethod)
 	r.registerRoute()
@@ -65,6 +65,74 @@ func TestChangePostToHiddenMethod(t *testing.T) {
 			endpoint,
 			url.Values{
 				"_method": {"DELETE"},
+			},
+			http.StatusOK,
+			"delete",
+		},
+	}
+
+	for _, test := range tests {
+		resp, body := testRequest(t, ts, test.method, test.path, strings.NewReader(test.body.Encode()))
+		if resp.StatusCode != test.expectedStatusCode {
+			t.Errorf("unexpected status code: got %d, but expected %d\n", resp.StatusCode, test.expectedStatusCode)
+		}
+		if body != test.expectedBody {
+			t.Errorf("unexpected body: got %s, but expected %s\n", body, test.expectedBody)
+		}
+	}
+}
+
+func TestChangePostToHiddenMethodOfUserDefined(t *testing.T) {
+	r := newTestRouter()
+	r.Use(NewChme("other").ChangePostToHiddenMethod)
+	r.registerRoute()
+	ts := httptest.NewServer(r)
+	defer ts.Close()
+
+	tests := []struct {
+		method             string
+		path               string
+		body               url.Values
+		expectedStatusCode int
+		expectedBody       string
+	}{
+		{
+			http.MethodGet,
+			endpoint,
+			url.Values{},
+			http.StatusOK,
+			"get",
+		},
+		{
+			http.MethodPost,
+			endpoint,
+			url.Values{},
+			http.StatusOK,
+			"post",
+		},
+		{
+			http.MethodPost,
+			endpoint,
+			url.Values{
+				"other": {"PUT"},
+			},
+			http.StatusOK,
+			"put",
+		},
+		{
+			http.MethodPost,
+			endpoint,
+			url.Values{
+				"other": {"PATCH"},
+			},
+			http.StatusOK,
+			"patch",
+		},
+		{
+			http.MethodPost,
+			endpoint,
+			url.Values{
+				"other": {"DELETE"},
 			},
 			http.StatusOK,
 			"delete",
