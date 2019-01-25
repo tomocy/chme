@@ -1,14 +1,19 @@
 Chme
 ====
 
-Chme enables us to do requests with other methods than GET and POST from HTML form.  
+Chme provides middlewares which enable you to do requests with other methods than GET and POST from HTML form.  
 Chme stands for "change methods".   
 
 ## Description
 HTML form does not support methods except GET and POST.   
-But we want it to request with more proper methods such as when we provide some edit feature.   
+But you sometimes want it to request with more proper methods such as when we provide some edit feature.   
 
 ## Usage
+The signature of middlewares in this repository is the standard one.  
+```go
+func(next http.Handler) http.Handler
+```
+
 ### ChangePostToHiddenMethod
 The usage is very simple.   
 All you have to do is add input named "_method" in POST form.  
@@ -36,9 +41,7 @@ go get github.com/tomocy/chme
 ```
 
 ## Licence
-
 [MIT](https://github.com/tcnksm/tool/blob/master/LICENCE)
 
 ## Author
-
 tomocy
