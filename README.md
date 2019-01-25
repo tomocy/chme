@@ -41,7 +41,7 @@ Make sure to specify html form method as POST because the default method of HTML
 You can change default input name "_method" to anything you want.  
 ```go
 // Change to "other" for the input
-r.Use(NewChe("other").ChangePostToHiddenMethod)
+r.Use(NewChme("other").ChangePostToHiddenMethod)
 ```
 
 ## Install
