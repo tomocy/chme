@@ -33,7 +33,13 @@ r.Put("/articles/{id}", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-Make sure to specify html form method as POST because the default method of HTML form is GET and this function ignores requests with GET.   
+Make sure to specify html form method as POST because the default method of HTML form is GET and this function ignores requests with GET.  
+
+You can change default input name "_method" to anything you want.  
+```go
+// Change to "other" for the input
+r.Use(NewChe("other").ChangePostToHiddenMethod)
+```
 
 ## Install
 ```
